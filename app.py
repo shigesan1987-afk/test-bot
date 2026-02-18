@@ -18,8 +18,8 @@ pdfmetrics.registerFont(TTFont('YuGothic', 'C:/Windows/Fonts/YuGothR.ttc'))
 
 app = Flask(__name__)
 
-LINE_CHANNEL_ACCESS_TOKEN = "QFjQDkaeY4PDYQv/IEguUet3gGqMsT9cfyR2iZHrSeamkGVzUSK+52tPN0pML8sFG/wNwownEmwP/UI3IF8/1+H5A/2ciq+SQ+e4PebaEmjmIkL7/p2xad2og4JaNW69r3WrBQJgXZ/l8qsjbChkPQdB04t89/1O/w1cDnyilFU="
-LINE_CHANNEL_SECRET = "c51970c4ce4f7e6bd15c5dcc32d2c2f8"
+LINE_CHANNEL_ACCESS_TOKEN = "LINE_CHANNEL_ACCESS_TOKEN"
+LINE_CHANNEL_SECRET = "LINE_CHANNEL_SECRET"
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
@@ -167,4 +167,5 @@ def generate_pdf(items):
 
 
 if __name__ == "__main__":
+
     app.run(port=8000)
