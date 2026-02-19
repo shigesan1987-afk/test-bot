@@ -1,31 +1,44 @@
-from flask import Flask, request
-from linebot import LineBotApi, WebhookHandler
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import os
 import io
-import qrcode
+from flask import Flask, request, send_from_directory
+from linebot import LineBotApi, WebhookHandler
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+import qrcode
 
 # ============================
-# 日本語フォント登録（Yu Gothic）
+# Flask アプリ
 # ============================
-pdfmetrics.registerFont(TTFont('YuGothic', 'C:/Windows/Fonts/YuGothR.ttc'))
-
 app = Flask(__name__)
 
-LINE_CHANNEL_ACCESS_TOKEN = "LINE_CHANNEL_ACCESS_TOKEN"
-LINE_CHANNEL_SECRET = "LINE_CHANNEL_SECRET"
+# ============================
+# LINE 環境変数（Render で設定）
+# ============================
+LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
+LINE_CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
+# ============================
+# 日本語フォント（NotoSansCJK）
+# ============================
+font_path = os.path.join(os.path.dirname(__file__), "fonts", "NotoSansCJK-Regular.otf")
+pdfmetrics.registerFont(TTFont("NotoSans", font_path))
+
+# ============================
+# ユーザー状態管理
+# ============================
 user_state = {}
 
+# ============================
+# LINE Webhook
+# ============================
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -34,6 +47,9 @@ def callback():
     return "OK"
 
 
+# ============================
+# メッセージ処理
+# ============================
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_id = event.source.user_id
@@ -120,11 +136,11 @@ def generate_pdf(items):
     width, height = A4
 
     y = height - 20 * mm
-    pdf.setFont("YuGothic", 18)
+    pdf.setFont("NotoSans", 18)
     pdf.drawString(20 * mm, y, "旅行のしおり")
     y -= 15 * mm
 
-    pdf.setFont("YuGothic", 12)
+    pdf.setFont("NotoSans", 12)
 
     items = sorted(items, key=lambda x: x["date"])
 
@@ -136,7 +152,7 @@ def generate_pdf(items):
         if y < 40 * mm:
             pdf.showPage()
             y = height - 20 * mm
-            pdf.setFont("YuGothic", 12)
+            pdf.setFont("NotoSans", 12)
 
         pdf.drawString(20 * mm, y, f"■ {date}")
         y -= 7 * mm
@@ -147,11 +163,11 @@ def generate_pdf(items):
             y -= 7 * mm
 
         maps_url = f"https://www.google.com/maps/search/?api=1&query={place}"
-        pdf.setFont("YuGothic", 9)
+        pdf.setFont("NotoSans", 9)
         pdf.drawString(25 * mm, y, maps_url)
-        pdf.setFont("YuGothic", 12)
+        pdf.setFont("NotoSans", 12)
 
-        # QRコード生成（ImageReaderで確実に動く）
+        # QRコード生成
         qr = qrcode.make(maps_url)
         qr_buffer = io.BytesIO()
         qr.save(qr_buffer, format="PNG")
@@ -166,6 +182,9 @@ def generate_pdf(items):
     return pdf_path
 
 
+# ============================
+# Render 用ポート設定
+# ============================
 if __name__ == "__main__":
-
-    app.run(port=8000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
