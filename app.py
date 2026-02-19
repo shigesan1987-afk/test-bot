@@ -28,7 +28,7 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 # ============================
 # 日本語フォント（NotoSansCJK）
 # ============================
-font_path = os.path.join(os.path.dirname(__file__), "fonts", "NotoSansCJK-Regular.otf")
+font_path = os.path.join(os.path.dirname(__file__), "fonts", "NotoSansJP-Regular.ttf")
 pdfmetrics.registerFont(TTFont("NotoSans", font_path))
 
 # ============================
@@ -188,3 +188,4 @@ def generate_pdf(items):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
